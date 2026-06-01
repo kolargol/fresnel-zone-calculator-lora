@@ -26,7 +26,3 @@ python3 -m http.server 8080
 2. Click again for **Receiver**
 3. Adjust antenna heights, power, and gain
 4. Press **Calculate**
-
-## License
-
-MIT
