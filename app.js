@@ -852,7 +852,7 @@ out body geom;`;
             const fr = p.fresnelRadius;
             // Calculate perpendicular offset in lat/lng
             const bearing = Math.atan2(
-                state.rxPoint.lng - state.txPoint.lng,
+                (state.rxPoint.lng - state.txPoint.lng) * Math.cos(toRad(p.lat)),
                 state.rxPoint.lat - state.txPoint.lat
             );
             const perpBearing = bearing + Math.PI / 2;
