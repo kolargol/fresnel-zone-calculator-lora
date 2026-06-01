@@ -16,7 +16,7 @@ Interactive map-based tool for calculating Fresnel zone clearance and RF link bu
 
 ## Usage
 
-Open `index.html` in a browser or serve locally:
+Open `index.html` in a browser (**in this case due to CORS building data wont be fetched!**) or serve locally - which is preferred way:
 
 ```bash
 python3 -m http.server 8080
