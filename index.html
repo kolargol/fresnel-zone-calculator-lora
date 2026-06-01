@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresnel Zone Calculator | 868 MHz LoRa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M8.5 8.5 L4 4"/>
+                        <path d="M15.5 8.5 L20 4"/>
+                        <path d="M15.5 15.5 L20 20"/>
+                        <path d="M8.5 15.5 L4 20"/>
+                        <circle cx="12" cy="12" r="8" stroke-dasharray="4 2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Fresnel Zone</h1>
+                    <p class="subtitle">868 MHz LoRa Link Calculator</p>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="card instructions-card">
+                    <div class="card-body">
+                        <ol>
+                            <li>Click map to place <strong>Transmitter</strong></li>
+                            <li>Click again for <strong>Receiver</strong></li>
+                            <li>Adjust parameters below</li>
+                            <li>Press <strong>Calculate</strong></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card" id="tx-card">
+                    <div class="card-header">
+                        <span class="marker-dot tx"></span>
+                        <span>Transmitter (Tx)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="coord-display" id="tx-coords">Click map to place</div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="tx-height">Antenna (m)</label>
+                                <input type="number" id="tx-height" value="10" min="0" max="300" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="tx-power">Power (dBm)</label>
+                                <input type="number" id="tx-power" value="14" min="-10" max="30" step="1">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="tx-gain">Gain (dBi)</label>
+                                <input type="number" id="tx-gain" value="2" min="-5" max="20" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="rx-card">
+                    <div class="card-header">
+                        <span class="marker-dot rx"></span>
+                        <span>Receiver (Rx)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="coord-display" id="rx-coords">Click map to place</div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="rx-height">Antenna (m)</label>
+                                <input type="number" id="rx-height" value="2" min="0" max="300" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="rx-gain">Gain (dBi)</label>
+                                <input type="number" id="rx-gain" value="2" min="-5" max="20" step="0.5">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="rx-sensitivity">Sensitivity</label>
+                                <select id="rx-sensitivity">
+                                    <option value="-123">SF7 (-123 dBm)</option>
+                                    <option value="-126">SF8 (-126 dBm)</option>
+                                    <option value="-129">SF9 (-129 dBm)</option>
+                                    <option value="-132" selected>SF10 (-132 dBm)</option>
+                                    <option value="-134.5">SF11 (-134.5 dBm)</option>
+                                    <option value="-137">SF12 (-137 dBm)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="btn-calculate" class="btn btn-primary" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        Calculate
+                    </button>
+                    <button id="btn-reset" class="btn btn-secondary">Reset</button>
+                </div>
+
+                <div id="results" class="hidden">
+                    <div class="card result-card">
+                        <div class="card-header">
+                            <span>Link Analysis</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <span class="result-label">Distance</span>
+                                    <span class="result-value" id="res-distance">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Free Space Loss</span>
+                                    <span class="result-value" id="res-fspl">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Fresnel Zone (max r)</span>
+                                    <span class="result-value" id="res-fresnel-r">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Worst Clearance</span>
+                                    <span class="result-value" id="res-clearance">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Obstruction Loss</span>
+                                    <span class="result-value" id="res-obstruction">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Received Power</span>
+                                    <span class="result-value" id="res-rx-power">--</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Link Margin</span>
+                                    <span class="result-value" id="res-margin">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card signal-card" id="signal-card">
+                        <div class="signal-badge" id="signal-badge">
+                            <div class="signal-icon" id="signal-icon"></div>
+                            <div class="signal-text">
+                                <span class="signal-quality" id="signal-quality">--</span>
+                                <span class="signal-desc" id="signal-desc"></span>
+                            </div>
+                        </div>
+                        <div class="signal-details" id="signal-details"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div id="map"></div>
+            <div id="profile-container" class="hidden">
+                <div class="profile-header">
+                    <span>Elevation Profile &amp; Fresnel Zone</span>
+                    <button id="btn-close-profile" class="btn-icon" title="Close profile">&times;</button>
+                </div>
+                <canvas id="profile-canvas"></canvas>
+                <div id="profile-tooltip" class="profile-tooltip hidden"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="loading" class="hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Analyzing link path...</p>
+            <p class="loading-sub" id="loading-status">Fetching elevation data</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
